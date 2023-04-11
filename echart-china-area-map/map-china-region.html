@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+
+<head>
+    <meta charset="utf-8">
+</head>
+<title>世界地图</title>
+<body style="height: 100%; margin: 0">
+    <div id="container" style="height: 100%"></div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.1/echarts.js"></script>
+    <script type="text/javascript" src="china.js"></script>
+    <script type="text/javascript">
+        var dom = document.getElementById("container");
+        var myChart = echarts.init(dom);
+        var app = {};
+        option = null;
+        function randomData() {
+            return Math.round(Math.random()*1000);
+        }
+    
+        option = {
+            title: {
+                text: '总数：1565476',
+                subtext: '',
+                left: 'left'
+            },
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data:['车辆']
+            },
+            visualMap: {
+                min: 0,
+                max: 2500,
+                left: 'left',
+                top: 'bottom',
+                text: ['高','低'],           // 文本，默认为数值文本
+                calculable: true
+            },
+            dataRange: {
+                x: '-1000px',//图例横轴位置
+                y: '-1000px',//图例纵轴位置
+                orient: 'horizontal',
+                min: 0,
+                max: 55000,
+                text: ['高', '低'],           // 文本，默认为数值文本
+                splitList: [
+                    {start: 1, end: 1, color: '#225a69'},
+                    {start: 2, end: 2, color: '#368299'},
+                    {start: 3, end: 3, color: '#507c83'},
+                    {start: 4, end: 4, color: '#98cae0'},
+                    {start: 5, end: 5, color: '#b8dcea'},
+                    {start: 6, end: 6, color: '#dfeef3'},
+                    {start: 7, end: 7, color: '#c0bebf'},
+                    {start: 8, end: 8, color: '#f2f5f6'},
+                    {start: 9, end: 9, color: '#f2f5f6'},
+                    {start: 10, end: 10, color: '#f2f5f6'},
+                ],
+                splitNumber: 0
+            },
+            series: [
+                {
+                    name: '车辆',
+                    type: 'map',
+                    map: 'china',
+                    showLegendSymbol : false,
+                    roam: false,
+                    label: {
+                        normal: {
+                            show: true
+                        },
+                        emphasis: {
+                            show: false
+                        }
+                    },
+                    itemStyle: { 
+                        normal: {
+                            lineStyle: { type: 'solid', color:'#000' },
+                            label: { 
+                                fontSize:16,
+                                lineHeght:16,
+                                height:16,
+                                color:'#000',
+                                show: true,
+                                formatter:function(params){
+                                    if(params.name == '台湾' || params.name == '澳门' || params.name == '香港' ){
+                                      return '';
+                                    }
+                                    params.name = params.name.substring(0,2);
+                                    return params.name+":"+params.data.percent//+"\r\n"+params.data.val+"\r\n"+"Top"+params.value;
+                                }, 
+                            }
+                        } 
+                        
+                    },
+                    emphasis: {
+                        label: {
+                            show: true
+                        }
+                    },
+                    data:[
+                        {name: '华东地区',value: 1,val:561,percent:'35.85%'  },
+                        {name: '华北地区',value: 2,val:306,percent:'19.60%' },
+                        {name: '华南地区',value: 3,val:274,percent:'17.55%'  },
+                        {name: '华中地区',value: 4,val:241,percent:'15.40%'  },
+                        {name: '西南地区',value: 5,val:108,percent:'6.91%'  },
+                        {name: '西北地区',value: 6,val:53,percent:'3.41%'},
+                        {name: '东北地区',value: 7,val:19,percent:'1.27%'  },
+                        {name: '台湾', value: 8,percent:'' },
+                        {name: '香港', value: 9,percent:'' },
+                        {name: '澳门', value: 10,percent:'' },
+                    ]
+                }
+            ]
+        };;
+        if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+        }
+        </script>
+</body>
+
+</html>

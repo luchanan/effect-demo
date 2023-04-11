@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+   <meta charset="utf-8">
+</head>
+<style>
+    body, html, #map {
+        width: 100%;
+        height: 100%;;
+    }
+</style>
+<title>世界地图-中国地图省份</title>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.1/echarts.js"></script>
+<body>
+   <div id="map"></div>
+   <script type="text/javascript">
+    // 异步请求json
+    // 世界-国家
+    var worldChinaUrl = "../ali/world/world.json"
+    // 世界-省级
+    var worldChinaProvinceUrl = "../ali/world/world-china-province.json"
+    // 中国省级
+    var chinaProvinceUrl = "../ali/100000_full.json"
+    // 中国省级城市
+    var chinaProvinceCityUrl = "../ali/china/all.json"
+    var hdcity = "../ali/world/world-china-province-hd-city.json"
+    var mapName = 'world'
+    var mapDom = document.getElementById("map");
+    var myChart = echarts.init(mapDom);
+    var option
+    myChart.showLoading();
+    var title = '世界地图'
+    var regionName = '华中地区'
+    var regionObj = {
+        '华中地区': ['山东省', '江苏省', '安徽省', '浙江省', '江西省', '福建省', '上海市'],
+    }
+    // 公用样式， selected
+    var commonColors = {
+        itemStyle: {
+            areaColor: '#FAFAFA',
+            borderColor: '#BFBFBF',
+            emptyColor: 'rgba(0,0,0,0)'
+        },
+        emphasis: {
+            itemStyle: {
+                areaColor: '#91D5FF',
+                borderColor: '#096DD9',
+            }
+        },
+        label: {
+            color: '#8C8C8C'
+        }
+    }
+    var commonStyle = {
+        itemStyle: {
+            areaColor: commonColors.itemStyle.areaColor,
+            borderColor: commonColors.itemStyle.borderColor,
+            borderWidth: 0.5
+        },
+        emphasis: {
+            itemStyle: {
+                areaColor: '#BAE7FF',
+                borderColor: '#1890FF',
+                borderWidth: 0.5,
+                shadowBlur: 4,
+                shadowOffsetX: 0,
+                shadowOffsetY: 2,
+                shadowColor: 'rgba(0, 0, 0, 0.12)'
+            }
+        },
+        select: {
+            itemStyle: {
+                areaColor: '#BAE7FF',
+                borderColor: '#1890FF'
+            }
+        }
+    }
+    // 世界中国底图
+    var chinaStyle = {
+        itemStyle: {
+            areaColor: commonColors.itemStyle.areaColor,
+            borderColor: commonColors.itemStyle.areaColor.borderColor,
+            borderWidth: 0.5,
+            shadowBlur: 100,
+            shadowOffsetX: -15,
+            shadowOffsetY: 40,
+            shadowColor: 'rgba(0, 132, 255, 0.08)'
+        },
+        select: {
+            itemStyle: {
+                areaColor: commonColors.itemStyle.areaColor,
+                borderColor: "#8C8C8C",
+            },
+            label: {
+                show: false
+            }
+        }
+    }
+    // 世界中国省底图
+    var provinceStyle = {
+        itemStyle: {
+            areaColor: commonColors.itemStyle.areaColor,
+            borderColor: '#8C8C8C',
+            borderWidth: 0.5
+        }
+    }
+    // 世界中国城市底图
+    var cityStyle = {
+        itemStyle: {
+            areaColor: commonStyle.emphasis.itemStyle.areaColor,
+            borderColor: '#FFFFFF',
+            borderWidth: 1,
+            opacity: 1,
+        },
+        emphasis: {
+            itemStyle: {
+                ...commonColors.emphasis.itemStyle,
+                borderWidth: 1
+            }
+        }
+    }
+    var apiCityStyle = {
+        label: {
+            color: commonColors.label.color
+        },
+        itemStyle: {
+            borderWidth: 1,
+            opacity: 0 ,
+            // areaColor: 'rgba(0,0,0,0)', // 鼠标移进去之前就有效果
+            areaColor: commonStyle.emphasis.itemStyle.areaColor, // 鼠标移进去之前就有效果
+            label: {
+                show: true,
+                color: commonColors.label.color
+            },
+        },
+        emphasis: {
+            itemStyle: {
+                ...commonColors.emphasis.itemStyle,
+                shadowBlur: 4,
+                shadowOffsetX: 0,
+                shadowOffsetY: 2,
+                shadowColor: 'rgba(0, 0, 0, 0.12)',
+                borderWidth: 1,
+                opacity: 1
+            },
+            disabled: false,
+            label: {
+                show: true,
+                color: commonColors.label.color
+            }
+        },
+        blur: {
+            itemStyle: {
+                opacity: 0
+            }
+        }
+    }
+    function init() {
+        // 世界地图
+        $.get(worldChinaUrl,function(worldData,status){
+            // 世界地图，中国, 省份
+            $.get(worldChinaProvinceUrl,function(worldChinaData,status){
+                // 中国地图, 省份
+                $.get(chinaProvinceUrl,function(chinaProvince,status){
+                    // 中国地图, 华东地区，城市数据
+                    $.get(hdcity,function(hdProvinceCity,status){
+                        // 中国省级城市数据
+                        $.get(chinaProvinceCityUrl, function(chinaProvinceCity,status){
+                            myChart.hideLoading();
+                            // 注册世界
+                            echarts.registerMap('world', worldData);
+                            echarts.registerMap('world-china-province', worldChinaData);
+                            echarts.registerMap('china-province', chinaProvince);
+                            echarts.registerMap('world-china-province-hd-city', hdProvinceCity);
+                            echarts.registerMap('world-china-province-hd-city-top', hdProvinceCity);
+                            var provinceData = []
+                            var cityData = []
+                            var apiCityData = []
+                            chinaProvince.features.forEach(items => {
+                                if (!items.properties.name) return
+                                var some = regionObj[regionName].includes(items.properties.name) // 该省/市是否属于该区域
+                                if (some) {
+                                    // 找该省级下的所有城市
+                                    let exist = chinaProvinceCity.find(citems => citems.name == items.properties.name)
+                                    if (exist) {
+                                        let array = chinaProvinceCity.filter(items => items.parent === exist.adcode)
+                                        array.forEach(citems => {
+                                            cityData.push(
+                                                {
+                                                    name: citems.name,
+                                                    itemStyle: {
+                                                        ...cityStyle.itemStyle
+                                                    },
+                                                },
+                                            )
+                                            apiCityData.push(
+                                                {
+                                                    name: citems.name,
+                                                    label: {
+                                                        ...apiCityStyle.label
+                                                    },
+                                                    itemStyle: {
+                                                        ...apiCityStyle.itemStyle,
+                                                    },
+                                                    emphasis: {
+                                                        ...apiCityStyle.emphasis
+                                                    },
+                                                },
+                                            )
+                                        })
+                                    }
+                                } else {
+                                    // 其他省份
+                                    let exist = chinaProvinceCity.find(citems => citems.name == items.properties.name) 
+                                    if (exist) {
+                                        cityData.push(
+                                            {
+                                                name: exist.name,
+                                                itemStyle: {
+                                                    opacity: 1
+                                                }
+                                            },
+                                        )
+                                    }
+                                    
+                                }
+                                var provinceItemStyle = {
+                                    ...commonStyle.select.itemStyle,
+                                    opacity: 1
+                                }
+                                // 选中数据
+                                provinceData.push(
+                                    {
+                                        name: items.properties.name,
+                                        selected: some, // 有数据的省级，标志选上
+                                        itemStyle: {
+                                            ...provinceItemStyle,
+                                            areaColor: commonColors.itemStyle.emptyColor, // 省级颜色变透明，显示该省级下的城市
+                                            borderColor: commonColors.itemStyle.emptyColor,
+                                            borderWidth: 1
+                                        },
+                                        select: {
+                                            itemStyle: {
+                                                ...provinceItemStyle,
+                                                areaColor: commonColors.itemStyle.emptyColor
+                                            },
+                                            label: {
+                                                show: false // 隐藏城市名
+                                            }
+                                        }
+                                    },
+                                )
+                            })
+                            option = {
+                                title: {
+                                    text: title
+                                },
+                                geo: [{
+                                    // 世界-国家-底图
+                                    map: "world", // 动态加载地图类型
+                                    roam: true,
+                                    silent: true, // 禁用鼠标事件
+                                    label: {
+                                        show: false,
+                                    },
+                                    // 普遍
+                                    itemStyle: {
+                                        ...commonStyle.itemStyle,
+                                    },
+                                    // hover
+                                    emphasis: {
+                                        itemStyle: {
+                                            ...commonStyle.emphasis.itemStyle
+                                        },
+                                    },
+                                    regions: [
+                                        { 
+                                            name: 'China',
+                                            selected: true, // 使得中国地图在世界地图置顶，使得边界投影效果不被覆盖
+                                            itemStyle: {
+                                                ...chinaStyle.itemStyle,
+                                            },
+                                            select: {
+                                                ...chinaStyle.select
+                                            },
+                                        }
+                                    ],
+                                }, {
+                                    // 世界-省级-底图
+                                    map: "world-china-province", // 动态加载地图类型
+                                    z: 1, // 省底图下可以看到该省级城市
+                                    roam: true,
+                                    silent: true, // 禁用鼠标事件
+                                    itemStyle: {
+                                        ...commonStyle.itemStyle,
+                                        opacity: 0
+                                    },
+                                    regions: provinceData,
+                                }, {
+                                    // 世界-城市-底图
+                                    map: "world-china-province-hd-city", // 动态加载地图类型
+                                    z: 1, // 省底图下可以看到该省级城市
+                                    roam: true,
+                                    silent: true, // 禁用鼠标事件
+                                    itemStyle: {
+                                        ...commonStyle.itemStyle,
+                                        opacity: 0
+                                    },
+                                    regions: cityData,
+                                },],
+                                // 返回城市数据
+                                series: [
+                                    {
+                                        type: 'map',
+                                        map: 'world-china-province-hd-city-top',
+                                        z: 99, // 省上边城市数据
+                                        roam: true,
+                                        silent: false, // 开启鼠标事件
+                                        selectedMode: 'single', // 允许区域选多个
+                                        itemStyle: {
+                                            ...commonStyle.itemStyle,
+                                            opacity: 0
+                                        },
+                                        emphasis: {
+                                            disabled: true,
+                                            label: {
+                                                show: false
+                                            }
+                                        },
+                                        select: {
+                                            disabled: true,
+                                            label: {
+                                                show: false
+                                            }
+                                        },
+                                        data: apiCityData
+                                    },
+                                ]
+                            }
+                            myChart.setOption(option)
+                            console.log(cityData)
+                        })
+                    })
+                })
+            })
+        });
+        option && myChart.setOption(option);
+    }
+    init()
+    myChart.on('mousemove', function (params) {
+        // 非激活区域变不要小手
+        // if (!regionObj[regionName].includes(params.name)) {
+        //     myChart.getZr().setCursorStyle('default')
+        // }
+    });
+    myChart.on('click', function (params) {
+        // 非激活区域变不要交互
+        // console.log(params)
+        // fix 点击后区域选中会消失
+        // if (!regionObj[regionName].includes(params.name)) return
+        // window.open('https://www.baidu.com')
+    });
+
+    myChart.on('georoam',function(params){
+        var option = myChart.getOption();//获得option对象
+        if(params.zoom!=null&&params.zoom!=undefined){ //捕捉到缩放时
+            option.geo[1].zoom=option.geo[0].zoom;//下层geo的缩放等级跟着上层的geo一起改变
+            option.geo[1].center=option.geo[0].center;//下层的geo的中心位置随着上层geo一起改变
+        }else{//捕捉到拖曳时
+            option.geo[1].center=option.geo[0].center;//下层的geo的中心位置随着上层geo一起改变
+        }
+        myChart.setOption(option);//设置option
+    });
+    
+    </script>
+</body>
+</html>

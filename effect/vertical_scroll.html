@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico?v=1.1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <style>
+    *{margin:0; padding:0;}
+    ul,li{list-style: none;}
+    #box{ width: 200px; height:90px; overflow:hidden; border:1px solid red;}
+</style>
+  <body>
+<div id="box">
+    <ul id="list1">
+      <li>
+        <div>fefef1</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+      </li>
+      <li>
+        <div>fefef2</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+      </li>
+      <li>
+        <div>fefef3</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+      </li>
+      <li>
+        <div>fefef4</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+      </li>
+      <li>
+        <div>fefef5</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+        <div>fefef</div>
+      </li>
+     </ul>
+     <ul id="list2"></ul>
+</div>      
+<script type="text/javascript">
+  var box=document.getElementById("box");
+  console.log(box.scrollTop)
+  var l1=document.getElementById("list1");
+  var l2=document.getElementById("list2");
+  l2.innerHTML=l1.innerHTML;//克隆list1的数据，使得list2和list1的数据一样
+  function scrollup(){
+    console.log(box.scrollTop)
+      if(box.scrollTop>=l1.offsetHeight){ //滚动条距离顶部的值恰好等于list1的高度时，达到滚动临界点，此时将让scrollTop=0,让list1回到初始位置，实现无缝滚动
+          box.scrollTop=0;
+      }else{
+          box.scrollTop++;
+      }
+  }
+  
+  var scrollMove=setInterval(scrollup,30);//数值越大，滚动速度越慢
+
+  //鼠标经过时，滚动停止
+  box.onmouseover=function(){
+      clearInterval(scrollMove)
+  }
+
+  //鼠标离开时，滚动继续
+  box.onmouseout=function(){
+      scrollMove=setInterval(scrollup,30);
+  }
+</script>
+  </body>
+</html>
